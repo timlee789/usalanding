@@ -10,13 +10,15 @@ import { ObjectId } from 'mongodb';
                         process.env.MONGODB_URI
                     );
                     const db = client.db();
-                   const {fullName, address, phoneNumber, email} = req.body;
+                   const {_id, fullName, address, phoneNumber, email} = req.body;
                 // update the published status of the post
-                await db.collection('contacts').update(
+                await db.collection('contacts').updateOne(
                     {
-                        _id: ObjectId(req.query._id),
+                        _id: ObjectId(_id),
                     },
-                    {fullName, address, phoneNumber, email},
+                    { $set:
+                    {"fullName": fullName, "address": address, "phoneNumber": phoneNumber, "email": email},
+                    }
                     // {
                        
                     //     fullName : req.body.fullName,
@@ -37,11 +39,10 @@ import { ObjectId } from 'mongodb';
                     // ]
                 );
         
-                // return a message
-                // return res.json({
-                //     message: "rPost updated successfully",
-                //     success: true,
-                // });
+                return res.json({
+                    message: "rPost updated successfully",
+                    success: true,
+                });
             
        
     }

@@ -1,4 +1,6 @@
-import React,{Fragment, useState} from 'react';
+/* eslint-disable react/jsx-key */
+/* eslint-disable react-hooks/rules-of-hooks */
+import React, { useState, Fragment } from 'react';
 //import data from '../data/mock-data.json';
 import ReadOnlyRow from '../components/ReadOnlyRow';
 import EditableRow from '../components/EditableRow';
@@ -96,11 +98,11 @@ function index({data}) {
             const response = fetch('./api/update', {
               method: 'PUT',
               body: JSON.stringify({
-                id: editContactId,
-                fullName: editFormData.fullName,
-                // address: editFormData.address,
-                // phoneNumber: editFormData.phoneNumber,
-                // email: editFormData.email,
+                "_id": editContactId,
+                "fullName": editFormData.fullName,
+                "address": editFormData.address,
+                "phoneNumber": editFormData.phoneNumber,
+                "email": editFormData.email,
               }),
               headers: {
                 'Content-type': 'application/json'
