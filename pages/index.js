@@ -1,69 +1,191 @@
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import React,{Fragment, useState} from 'react';
+//import data from '../data/mock-data.json';
+import ReadOnlyRow from '../components/ReadOnlyRow';
+import EditableRow from '../components/EditableRow';
+import db from '../data/db';
+import Contact from '../models/Contacts';
+import axios, { Axios } from 'axios';
 
-export default function Home() {
+function index({data}) {
+  const [ contacts, setContacts] = useState(data);
+  const [addFormData, setAddFormData] = useState({
+            fullName: "",
+            address: "",
+            phoneNumber: "",
+            email: "",
+  });
+  const [editFormData, setEditFormData ] = useState({
+            fullName: "",
+            address: "",
+            phoneNumber: "",
+            email: "",
+  })
+  const [editContactId, setEditContactId] = useState(null);
+  const handleAddFormChange = (event) => {
+            event.preventDefault();
+            const fieldName = event.target.getAttribute("name");
+            const fieldValue = event.target.value;
+            const newFormData = { ...addFormData };
+            newFormData[fieldName] = fieldValue;
+            setAddFormData(newFormData);
+  };
+  const handleEditFormChange = (event) => {
+            event.preventDefault();
+            const fieldName = event.target.getAttribute("name");
+            const fieldValue = event.target.value;
+            const newFormData = { ...editFormData};
+            newFormData[fieldName] = fieldValue;
+            setEditFormData(newFormData)
+  }
+  const handleAddFormSubmit = async (event) => {
+            event.preventDefault();
+            const newContact = {
+
+              fullName: addFormData.fullName,
+              address: addFormData.address,
+              phoneNumber: addFormData.phoneNumber,
+              email: addFormData.email,
+            };
+            const {fullName, address, phoneNumber, email} = newContact;
+            const newContacts = [...contacts, newContact];
+            setContacts(newContacts)
+            const response = await fetch('/api/dataInput', 
+            {
+              method: 'POST',
+              body: JSON.stringify(
+                {
+                  fullName: addFormData.fullName,
+                  address: addFormData.address,
+                  phoneNumber: addFormData.phoneNumber,
+                  email: addFormData.email,
+                }
+              ),
+              headers: {
+                'Content-type': 'application/json'
+              }
+            })
+            const data = await response.json();
+            console.log(data)
+            // await axios.post('/api/dataInput', {
+            // });
+          }
+
+  const handleEditFormSubmit = async(event) => {
+            event.preventDefault();
+            const editedContact = {
+              id: editContactId,
+              fullName: editFormData.fullName,
+              address: editFormData.address,
+              phoneNumber: editFormData.phoneNumber,
+              email: editFormData.email,
+            };
+            
+            const newContacts = [...contacts];
+            const index = contacts.findIndex((contact) => contact.id === editContactId);
+            newContacts[index] = editedContact;
+            setContacts(newContacts);
+            //const res = await axios.put('/api/update', editedContact
+                  // id: editContactId,
+                  // fullName: editFormData.fullName,
+                  // address: editFormData.address,
+                  // phoneNumber: editFormData.phoneNumber,
+                  // email: editFormData.email,
+            //).then ( function(response) {
+             // console.log(response)
+            //} )
+            const response = fetch('./api/update', {
+              method: 'PUT',
+              body: JSON.stringify({
+                id: editContactId,
+                fullName: editFormData.fullName,
+                // address: editFormData.address,
+                // phoneNumber: editFormData.phoneNumber,
+                // email: editFormData.email,
+              }),
+              headers: {
+                'Content-type': 'application/json'
+              }
+            })
+           
+            //const data = await response.json()
+            setEditContactId(null);
+  }
+  const handleEditClick = (event, contact) => {
+            event.preventDefault();
+            setEditContactId(contact._id);
+            const formValues = {
+              fullName: contact.fullName,
+              address: contact.address,
+              phoneNumber: contact.phoneNumber,
+              email: contact.email,
+            };
+            setEditFormData(formValues)
+  }
+    const handleCancelClick = () => {
+      setEditContactId(null);
+    }
+    const handleDeleteClick = async (contactId) => {
+      
+      const newContacts = [...contacts];
+      const index = contacts.findIndex((contact) => contact._id === contactId);
+      newContacts.splice(index, 1);
+      setContacts(newContacts);
+      const deleteData = await axios.delete('/api/delete',{params:{_id:contactId}})
+      .then(function (response) {
+        console.log(response)
+      })
+   }
   return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <meta name="description" content="Generated by create next app" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/canary/examples"
-            className={styles.card}
-          >
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+    <div className='mt-4'>
+      <form onSubmit={handleAddFormSubmit}>
+        <input type="text" name="fullName" placeholder="Enter name" required='required' onChange={handleAddFormChange}/>
+        <input type="text" name="address" placeholder="Enter address" onChange={handleAddFormChange}/>
+        <input type="text" name="phoneNumber" placeholder="Enter Phone Number" onChange={handleAddFormChange}/>
+        <input type="text" name="email" placeholder="Enter email" onChange={handleAddFormChange}/>
+        <button type='submit'> Add </button>
+      </form>
+      <form onSubmit={handleEditFormSubmit}>
+      <table>
+        <thead>
+          <tr>
+            
+            <th>name</th>
+            <th>address</th>
+            <th>Phone Number</th>
+            <th>Email</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+            {contacts.map((contact) => (
+              <Fragment>
+                {editContactId === contact._id ? (
+                  <EditableRow 
+                    editFormData={editFormData}
+                    handleEditFormChange={handleEditFormChange}
+                    handleCancelClick={handleCancelClick}/>
+                ): (
+                  <ReadOnlyRow 
+                    contact={contact}
+                    handleEditClick={handleEditClick}
+                    handleDeleteClick={handleDeleteClick} />
+                )}
+              </Fragment>
+            ))}
+        </tbody>
+      </table>
+      </form>
     </div>
   )
 }
+
+export async function getServerSideProps() {
+  await db.connect();
+  const contact = await Contact.find().lean();
+  return {
+    props: {
+      data: contact.map(db.convertDocToObj),
+    }
+  }
+}
+export default index
